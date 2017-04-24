@@ -115,7 +115,7 @@ module Backup
         cmd_remote = pipeline.commands.join(" | ")
 
         remote = Backup::Remote::Command.new
-        res_generate = remote.run_ssh_cmd(server_host, server_ssh_user, server_ssh_password, cmd_remote)
+        res_generate = remote.run_ssh_cmd(server_host, server_ssh_user, server_ssh_password, server_ssh_key, cmd_remote)
 
         if res_generate[:res]==0
           raise 'Cannot create backup on server'
@@ -124,7 +124,7 @@ module Backup
         # download backup
         dump_file = File.join(dump_path, dump_filename+"."+dump_ext)
 
-        res_download = remote.ssh_download_file(server_host, server_ssh_user, server_ssh_password, dump_remote_file, dump_file)
+        res_download = remote.ssh_download_file(server_host, server_ssh_user, server_ssh_password, server_ssh_key,dump_remote_file, dump_file)
 
         if res_download[:res]==0
           raise 'Cannot download file from server'

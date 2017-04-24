@@ -86,6 +86,7 @@ module Backup
       self.server_host = @options[:server_host]
       self.server_ssh_user = @options[:server_ssh_user]
       self.server_ssh_password = @options[:server_ssh_password]
+      self.server_ssh_key = @options[:server_ssh_key]
     end
 
     def perform!
@@ -102,7 +103,7 @@ module Backup
       pipeline = Pipeline.new
       with_files_from(paths_to_package) do |files_from|
         # upload to server
-        res_upload = remote.ssh_upload_file(server_host, server_ssh_user, server_ssh_password, files_from, files_from)
+        res_upload = remote.ssh_upload_file(server_host, server_ssh_user, server_ssh_password, server_ssh_key, files_from, files_from)
 
         if res_upload[:res]==0
           raise "Cannot upload file to server - #{files_from}"
@@ -136,14 +137,14 @@ module Backup
         #exit
 
 
-        res_generate = remote.run_ssh_cmd(server_host, server_ssh_user, server_ssh_password, cmd_remote)
+        res_generate = remote.run_ssh_cmd(server_host, server_ssh_user, server_ssh_password, server_ssh_key, cmd_remote)
 
         if res_generate[:res]==0
           raise 'Cannot create backup on server'
         end
 
         # download backup
-        res_download = remote.ssh_download_file(server_host, server_ssh_user, server_ssh_password, remote_archive_file, archive_file)
+        res_download = remote.ssh_download_file(server_host, server_ssh_user, server_ssh_password, server_ssh_key,remote_archive_file, archive_file)
 
         #puts "res: #{res_download}"
 
@@ -152,7 +153,7 @@ module Backup
         end
 
         # delete archive on server
-        res_delete = remote.run_ssh_cmd(server_host, server_ssh_user, server_ssh_password, "rm #{remote_archive_file}")
+        res_delete = remote.run_ssh_cmd(server_host, server_ssh_user, server_ssh_password, server_ssh_key, "rm #{remote_archive_file}")
 
       end
 
@@ -219,19 +220,22 @@ module Backup
 
 
       ### remote server
-      def server_host=(val = true)
+      def server_host=(val)
         @options[:server_host] = val
       end
 
-      def server_ssh_user=(val = true)
+      def server_ssh_user=(val)
         @options[:server_ssh_user] = val
       end
-      def server_ssh_password=(val = true)
+      def server_ssh_password=(val)
         @options[:server_ssh_password] = val
+      end
+      def server_ssh_key=(val)
+        @options[:server_ssh_key] = val
       end
 
       ###
-      def use_sudo(val = true)
+      def use_sudo(val)
         @options[:sudo] = val
       end
 
