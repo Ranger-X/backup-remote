@@ -102,8 +102,8 @@ module Backup
             cmd_remote)
       end
 
-      if res_generate[:res]==0
-        raise 'Cannot create backup on server'
+      if res_generate[:res] == 0
+        raise "Cannot create backup on server: #{res_generate[:error].to_s}"
       end
 
 
