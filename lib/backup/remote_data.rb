@@ -85,7 +85,7 @@ module Backup
 
         remote.ssh_upload_file(server_host, server_ssh_user, server_ssh_password, server_ssh_key, local_script_path, remote_script_path)
 
-        cmd_remote = "chmod +x #{remote_script_path} && sh #{remote_script_path}"
+        cmd_remote = "chmod 700 #{remote_script_path} && sh #{remote_script_path}"
         res_generate = remote.run_ssh_cmd(
             server_host, server_ssh_user, server_ssh_password, server_ssh_key,
             cmd_remote)
@@ -94,6 +94,7 @@ module Backup
         cmd_delete = "rm -rf #{remote_script_path}"
         res_delete = remote.run_ssh_cmd(server_host, server_ssh_user, server_ssh_password, server_ssh_key,cmd_delete)
 
+        Logger.info "delete script error: #{res_delete[:error].to_s}" if res_delete.has_key?(:error)
       else
         # use command
         cmd_remote = server_command
