@@ -136,7 +136,7 @@ module Backup
       upload! source_file, f_temp
 
       # upload to dest
-      execute("cp #{f_temp} #{dest_file}", interaction_handler: handler)
+      execute("mv #{f_temp} #{dest_file}", interaction_handler: handler)
 
     end
 
