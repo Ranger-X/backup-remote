@@ -11,13 +11,22 @@ module Backup
       include SSHKit::DSL
 
 
-      def run_ssh_cmd(hostname, ssh_user, ssh_pass, ssh_key, cmd)
-        #cmd = "bash -c 'whoami'"
+      def self.build_sshkit_host(hostname, ssh_options)
+        ssh_user = ssh_options[:user]
+        ssh_pass = ssh_options[:password]
+        ssh_key = ssh_options[:key]
 
-        #puts "run ssh cmd: #{hostname}, #{ssh_user}, #{ssh_pass}, #{cmd}"
         host = SSHKit::Host.new({hostname: hostname, user: ssh_user})
+        host.port = ssh_options[:port] || 22
         host.key = ssh_key if ssh_key
         host.password = ssh_pass if ssh_pass
+
+        host
+      end
+
+      def run_ssh_cmd(hostname, ssh_options, cmd)
+        #puts "run ssh cmd: #{hostname}, #{ssh_user}, #{ssh_pass}, #{cmd}"
+        host = Command.build_sshkit_host(hostname, ssh_options)
 
         #srv = ssh_user+'@'+hostname
         all_servers = [host]
@@ -44,7 +53,7 @@ module Backup
         return {     res: 1,      output: output   }
 
       rescue => e
-        #puts "ssh error: #{e.message}, #{e.backtrace}"
+        puts "ssh error: #{e.message}, #{e.backtrace}"
 
         {
             res: 0,
@@ -84,12 +93,17 @@ module Backup
 
 
 
-  def ssh_download_file(hostname, ssh_user, ssh_pass, ssh_key, remote_filename, dest_filename)
-    return ssh_download_file_sshkit(hostname, ssh_user, ssh_pass, ssh_key, remote_filename, dest_filename)
+  def ssh_download_file(hostname, ssh_options, remote_filename, dest_filename)
+    return ssh_download_file_sshkit(hostname, ssh_options, remote_filename, dest_filename)
     #return ssh_download_file_scp(hostname, ssh_user, ssh_pass, remote_filename, dest_filename)
   end
 
-  def ssh_download_file_scp(hostname, ssh_user, ssh_pass, ssh_key, remote_filename, dest_filename)
+  def ssh_download_file_scp(hostname, ssh_options, remote_filename, dest_filename)
+    ssh_user = ssh_options[:ssh_user]
+    ssh_pass = ssh_options[:ssh_password]
+    ssh_key = ssh_options[:ssh_key]
+
+    # work
     Net::SCP.download!(hostname, ssh_user, remote_filename, dest_filename, :ssh => { :password => ssh_pass })
 
     #
@@ -103,10 +117,8 @@ module Backup
   end
 
   # !! NOT work on big files > 4Gb
-  def ssh_download_file_sshkit(hostname, ssh_user, ssh_pass, ssh_key, remote_filename, dest_filename)
-    host = SSHKit::Host.new("#{ssh_user}@#{hostname}")
-    host.key = ssh_key if ssh_key
-    host.password = ssh_pass if ssh_pass
+  def ssh_download_file_sshkit(hostname, ssh_options, remote_filename, dest_filename)
+    host = Command.build_sshkit_host(hostname, ssh_options)
 
     on host do |host|
       download! remote_filename, dest_filename
@@ -122,10 +134,8 @@ module Backup
     }
   end
 
-  def ssh_upload_file(hostname, ssh_user, ssh_pass, ssh_key, source_file, dest_file, handler=nil)
-    host = SSHKit::Host.new("#{ssh_user}@#{hostname}")
-    host.key = ssh_key if ssh_key
-    host.password = ssh_pass if ssh_pass
+  def ssh_upload_file(hostname, ssh_options, source_file, dest_file, handler=nil)
+    host = Command.build_sshkit_host(hostname, ssh_options)
 
     # scp
     f_temp = "/tmp/#{SecureRandom.uuid}"
@@ -136,7 +146,7 @@ module Backup
       upload! source_file, f_temp
 
       # upload to dest
-      execute("mv #{f_temp} #{dest_file}", interaction_handler: handler)
+      execute("cp #{f_temp} #{dest_file}", interaction_handler: handler)
 
     end
 
