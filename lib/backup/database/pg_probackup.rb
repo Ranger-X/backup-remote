@@ -236,6 +236,7 @@ module Backup
         @retention_merge_expired  ||= false
         @retention_dry_run        ||= false
         @log_level_console        ||= :info
+        @log_level_file           ||= :off
 
         required = [ :backup_db, :catalog, :name, :username ]
 
@@ -279,8 +280,8 @@ module Backup
       def validate_param_array(param_name, valid_values)
         v = self.send(param_name.to_sym)
 
-        unless valid_values.include?(v.to_sym)
-          raise Error, "Parameter #{param_name.to_s} with value '#{v}' is invalid. You must choose one of: #{valid_values.join(', ')}"
+        if v.nil? || !valid_values.include?(v.to_sym)
+          raise Error, "Parameter #{param_name.to_s} with value '#{v.to_s}' is invalid. You must choose one of: #{valid_values.join(', ')}"
         end
       end
 
