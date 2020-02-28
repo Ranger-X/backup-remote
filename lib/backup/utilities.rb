@@ -10,6 +10,7 @@ module Backup
       gzip bzip2
       mongo mongodump mysqldump innobackupex
       pg_dump pg_dumpall redis-cli riak-admin
+      pg_probackup
       gpg openssl
       rsync ssh
       sendmail exim
