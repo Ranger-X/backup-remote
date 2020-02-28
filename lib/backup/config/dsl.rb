@@ -28,7 +28,7 @@ module Backup
             DSL,
             [ # Databases
               ['MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Riak', 'OpenLDAP', 'SQLite',
-               'RemoteMySQL'
+               'RemoteMySQL', 'PgProbackup'
               ],
 
               # Storages
